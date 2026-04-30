@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(pnpm create *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm add *)",
+      "Bash(npx tsc *)",
+      "Bash(pnpm build *)",
+      "Bash(uv *)",
+      "Bash(curl -s http://localhost:8000/docs)",
+      "Bash(pnpm dev *)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:8000/api/v1/health)"
     ]
   }
 }

@@ -7,6 +7,7 @@ This project follows the best practices and conventions defined in [AGENTS.md](.
 This is a **React + Vite + FastAPI** full-stack application with:
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
 - **Backend**: FastAPI + Python 3.11+ + SQLAlchemy 2.0 async
+- **Python Environment**: uv (fast Python package manager)
 - **State Management**: Zustand + TanStack Query (React Query)
 - **Database**: PostgreSQL with Alembic migrations
 - **Authentication**: JWT-based auth with httpOnly cookies
@@ -64,11 +65,11 @@ pnpm type-check           # TypeScript check
 ### Backend
 ```bash
 cd backend
-pip install -r requirements.txt    # Install dependencies
-uvicorn app.main:app --reload      # Start dev server (port 8000)
-pytest                              # Run tests
-alembic upgrade head                # Apply migrations
-alembic revision --autogenerate -m "description"  # Create migration
+uv sync                             # Install dependencies (creates venv automatically)
+uv run uvicorn app.main:app --reload  # Start dev server (port 8000)
+uv run pytest                       # Run tests
+uv run alembic upgrade head         # Apply migrations
+uv run alembic revision --autogenerate -m "description"  # Create migration
 ```
 
 ## Important Conventions
@@ -118,10 +119,37 @@ alembic revision --autogenerate -m "description"  # Create migration
 
 ## Before Committing
 
-1. Run linters: `pnpm lint` (frontend) and `ruff check .` (backend)
-2. Run type checks: `pnpm type-check` (frontend) and `mypy .` (backend)
-3. Run tests: `pnpm test` (frontend) and `pytest` (backend)
-4. Ensure migrations are up to date: `alembic upgrade head`
+1. Run linters: `pnpm lint` (frontend) and `uv run ruff check .` (backend)
+2. Run type checks: `pnpm type-check` (frontend) and `uv run mypy .` (backend)
+3. Run tests: `pnpm test` (frontend) and `uv run pytest` (backend)
+4. Ensure migrations are up to date: `uv run alembic upgrade head`
+
+## Python Environment Management with uv
+
+This project uses **uv** for Python dependency management. Key benefits:
+- **Fast**: 10-100x faster than pip
+- **Reliable**: Deterministic dependency resolution with lock file
+- **Simple**: Automatic virtual environment management
+
+### Common uv Commands
+```bash
+uv sync              # Install all dependencies (creates .venv automatically)
+uv sync --dev        # Install with dev dependencies
+uv add <package>     # Add a new dependency
+uv add --dev <package>  # Add a dev dependency
+uv remove <package>  # Remove a dependency
+uv lock              # Update uv.lock file
+uv run <command>     # Run command in the virtual environment
+uv pip list          # List installed packages
+```
+
+### First Time Setup
+```bash
+cd backend
+uv sync              # Creates .venv and installs all dependencies
+```
+
+The virtual environment is automatically created in `backend/.venv` and activated when using `uv run`.
 
 ## Reference
 

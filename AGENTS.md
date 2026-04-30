@@ -193,6 +193,7 @@ export default defineConfig({
 ### General Rules
 
 - **Python version**: 3.11+
+- **Package manager**: Use `uv` for dependency management (not pip or poetry)
 - **Type hints**: Required on all function signatures
 - **Async**: Use `async def` for all route handlers and database operations
 - **Dependency injection**: Use FastAPI's `Depends()` for shared logic
@@ -369,6 +370,8 @@ async def get_db() -> AsyncSession:
 - Log structured JSON in production (`structlog` or `python-json-logger`)
 - Use Alembic `--autogenerate` for migrations, but always review before applying
 - Never expose internal errors to clients; use custom exception handlers
+- Always use `uv run` to execute commands in the virtual environment
+- Dependencies are defined in `pyproject.toml`, locked in `uv.lock`
 
 ## Full-Stack Integration
 
@@ -412,10 +415,16 @@ cd frontend && pnpm build            # Production build
 cd frontend && pnpm lint             # ESLint check
 cd frontend && pnpm type-check       # TypeScript check
 
-# Backend
-cd backend && pip install -r requirements.txt   # Install dependencies
-cd backend && uvicorn app.main:app --reload     # Start dev server
-cd backend && pytest                             # Run tests
-cd backend && alembic upgrade head               # Run migrations
-cd backend && alembic revision --autogenerate -m "description"  # Create migration
+# Backend (using uv)
+cd backend && uv sync                # Install dependencies (creates .venv)
+cd backend && uv run uvicorn app.main:app --reload  # Start dev server
+cd backend && uv run pytest          # Run tests
+cd backend && uv run alembic upgrade head  # Run migrations
+cd backend && uv run alembic revision --autogenerate -m "description"  # Create migration
+
+# Backend dependency management
+cd backend && uv add <package>       # Add new dependency
+cd backend && uv add --dev <package> # Add dev dependency
+cd backend && uv remove <package>    # Remove dependency
+cd backend && uv lock                # Update lock file
 ```

@@ -1,0 +1,53 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kb-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./backend:/app
+    environment:
+      - DEBUG=true
+      - DATA_DIR=/app/data
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/app.db
+      - CHROMA_PERSIST_DIR=/app/data/chroma
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=qwen2.5:7b
+      - EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost"]
+    depends_on:
+      - ollama
+    networks:
+      - kb-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kb-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - kb-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: kb-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - kb-network
+
+volumes:
+  ollama-data:
+
+networks:
+  kb-network:
+    driver: bridge

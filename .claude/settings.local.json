@@ -12,7 +12,12 @@
       "Bash(curl -s http://localhost:8000/docs)",
       "Bash(pnpm dev *)",
       "Bash(curl -s http://localhost:3000)",
-      "Bash(curl -s http://localhost:8000/api/v1/health)"
+      "Bash(curl -s http://localhost:8000/api/v1/health)",
+      "Bash(git commit *)",
+      "Bash(curl *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(taskkill *)"
     ]
   }
 }

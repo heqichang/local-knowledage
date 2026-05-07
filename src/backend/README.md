@@ -25,14 +25,13 @@ pip install uv
 ### 1. 安装依赖
 
 ```bash
-cd backend
 uv sync              # 自动创建虚拟环境并安装所有依赖
 ```
 
 ### 2. 配置环境变量
 
 ```bash
-cp ../.env.example ../.env
+cp .env.example .env
 # 编辑 .env 文件，配置数据库连接等信息
 ```
 
@@ -120,6 +119,7 @@ backend/
 │   └── main.py          # FastAPI 应用入口
 ├── tests/               # 测试文件
 ├── alembic/             # 数据库迁移
+├── .env                 # 环境变量配置
 ├── pyproject.toml       # 项目配置和依赖
 └── uv.lock              # 依赖锁文件
 ```

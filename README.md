@@ -56,7 +56,7 @@ pip install uv
 #### 后端启动
 
 ```bash
-cd backend
+cd src/backend
 
 # 安装依赖（自动创建虚拟环境）
 uv sync
@@ -68,7 +68,7 @@ uv run uvicorn app.main:app --reload --port 8000
 #### 前端启动
 
 ```bash
-cd frontend
+cd src/frontend
 
 # 安装依赖
 pnpm install
@@ -88,36 +88,39 @@ ollama pull qwen2.5:7b
 ## 项目结构
 
 ```
-├── backend/              # FastAPI 后端
-│   ├── app/
-│   │   ├── api/v1/      # API 路由
-│   │   ├── core/        # 配置
-│   │   ├── db/          # 数据库
-│   │   ├── models/      # ORM 模型
-│   │   ├── schemas/     # Pydantic schemas
-│   │   ├── services/    # 业务逻辑
-│   │   └── main.py      # 入口
-│   └── pyproject.toml
-├── frontend/            # React 前端
-│   ├── src/
-│   │   ├── api/         # API 客户端
-│   │   ├── components/  # 组件
-│   │   ├── layouts/     # 布局
-│   │   ├── pages/       # 页面
-│   │   └── routes/      # 路由
-│   └── package.json
+├── src/
+│   ├── backend/         # FastAPI 后端
+│   │   ├── app/
+│   │   │   ├── api/v1/  # API 路由
+│   │   │   ├── core/    # 配置
+│   │   │   ├── db/      # 数据库
+│   │   │   ├── models/  # ORM 模型
+│   │   │   ├── schemas/ # Pydantic schemas
+│   │   │   ├── services/# 业务逻辑
+│   │   │   └── main.py  # 入口
+│   │   ├── .env         # 后端环境变量
+│   │   └── pyproject.toml
+│   └── frontend/        # React 前端
+│       ├── src/
+│       │   ├── api/     # API 客户端
+│       │   ├── components/ # 组件
+│       │   ├── layouts/ # 布局
+│       │   ├── pages/   # 页面
+│       │   └── routes/  # 路由
+│       ├── .env         # 前端环境变量
+│       └── package.json
 ├── docs/                # 文档
 │   └── requirements.md  # 需求文档
-├── docker-compose.yml
-└── .env.example
+└── docker-compose.yml
 ```
 
 ## 配置
 
-复制 `.env.example` 为 `.env` 并根据需要修改配置：
+各服务使用各自目录下的 `.env` 文件：
 
+**后端配置** (`src/backend/.env`)：
 ```bash
-cp .env.example .env
+cp src/backend/.env.example src/backend/.env
 ```
 
 主要配置项：
@@ -127,41 +130,49 @@ cp .env.example .env
 - `CHUNK_SIZE`: 文档分段大小
 - `SEARCH_TOP_K`: 检索返回条数
 
+**前端配置** (`src/frontend/.env`)：
+```bash
+cp src/frontend/.env.example src/frontend/.env
+```
+
+主要配置项：
+- `VITE_API_URL`: 后端 API 地址（默认 http://localhost:8000）
+
 ## 开发
 
 ### 后端
 
 ```bash
 # 安装依赖
-cd backend && uv sync
+cd src/backend && uv sync
 
 # 添加新依赖
-cd backend && uv add <package-name>
+cd src/backend && uv add <package-name>
 
 # 添加开发依赖
-cd backend && uv add --dev <package-name>
+cd src/backend && uv add --dev <package-name>
 
 # 类型检查
-cd backend && uv run mypy .
+cd src/backend && uv run mypy .
 
 # 代码格式化
-cd backend && uv run ruff check . --fix
+cd src/backend && uv run ruff check . --fix
 
 # 运行测试
-cd backend && uv run pytest
+cd src/backend && uv run pytest
 ```
 
 ### 前端
 
 ```bash
 # 类型检查
-cd frontend && pnpm type-check
+cd src/frontend && pnpm type-check
 
 # 代码检查
-cd frontend && pnpm lint
+cd src/frontend && pnpm lint
 
 # 构建
-cd frontend && pnpm build
+cd src/frontend && pnpm build
 ```
 
 ## MVP 开发计划

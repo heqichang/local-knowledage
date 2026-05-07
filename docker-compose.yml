@@ -1,14 +1,14 @@
 services:
   backend:
     build:
-      context: ./backend
+      context: ./src/backend
       dockerfile: Dockerfile
     container_name: kb-backend
     ports:
       - "8000:8000"
     volumes:
       - ./data:/app/data
-      - ./backend:/app
+      - ./src/backend:/app
     environment:
       - DEBUG=true
       - DATA_DIR=/app/data
@@ -25,7 +25,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./src/frontend
       dockerfile: Dockerfile
     container_name: kb-frontend
     ports:

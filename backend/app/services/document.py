@@ -1,12 +1,12 @@
 import hashlib
 from pathlib import Path
-from datetime import datetime
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models import Document, KnowledgeBase
-from app.schemas import DocumentStatus, DocumentResponse, DocumentListResponse
+from app.schemas import DocumentListResponse, DocumentResponse, DocumentStatus
 
 
 class DocumentService:
@@ -56,6 +56,9 @@ class DocumentService:
         valid_types = {"txt", "md", "pdf", "docx", "doc", "xlsx", "xls"}
         return ext if ext in valid_types else "txt"
 
+    def _get_file_path(self, doc_id: int, filename: str) -> Path:
+        return self.upload_dir / f"{doc_id}_{filename}"
+
     async def upload_file(
         self,
         kb_id: int,
@@ -77,10 +80,6 @@ class DocumentService:
         file_type = self._get_file_type(filename)
         file_size = len(file_content)
 
-        saved_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
-        file_path = self.upload_dir / saved_filename
-        file_path.write_bytes(file_content)
-
         doc = Document(
             knowledge_base_id=kb_id,
             filename=filename,
@@ -93,6 +92,14 @@ class DocumentService:
         await self.db.commit()
         await self.db.refresh(doc)
 
+        try:
+            file_path = self._get_file_path(doc.id, doc.filename)
+            file_path.write_bytes(file_content)
+        except OSError as exc:
+            await self.db.delete(doc)
+            await self.db.commit()
+            return None, f"文件保存失败: {exc}"
+
         return doc, ""
 
     async def process_document(self, doc_id: int) -> Document:
@@ -104,7 +111,7 @@ class DocumentService:
         await self.db.commit()
 
         try:
-            file_path = self.upload_dir / f"{doc.id}_{doc.filename}"
+            file_path = self._get_file_path(doc.id, doc.filename)
 
             from app.utils.file_parser import get_file_parser
             parser = get_file_parser(doc.file_type)

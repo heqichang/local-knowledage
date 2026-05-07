@@ -1,19 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.schemas import (
-    KnowledgeBaseCreate,
-    KnowledgeBaseUpdate,
-    KnowledgeBaseResponse,
-    KnowledgeBaseListResponse,
-    DocumentResponse,
     DocumentListResponse,
+    DocumentResponse,
     DocumentUploadResponse,
-    DocumentStatus,
+    KnowledgeBaseCreate,
+    KnowledgeBaseListResponse,
+    KnowledgeBaseResponse,
+    KnowledgeBaseUpdate,
 )
-from app.services import KnowledgeBaseService, DocumentService
+from app.services import DocumentService, KnowledgeBaseService
 
 router = APIRouter()
 

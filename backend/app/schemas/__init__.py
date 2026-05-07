@@ -1,23 +1,23 @@
 from .common import ListResponse, PaginatedResponse
-from .knowledge_base_base import (
-    KnowledgeBaseBase,
-    KnowledgeBaseCreate,
-    KnowledgeBaseUpdate,
-    KnowledgeBaseResponse,
+from .document import (
+    DocumentListResponse,
+    DocumentPaginatedResponse,
+)
+from .document_base import (
+    DocumentBase,
+    DocumentResponse,
+    DocumentStatus,
+    DocumentUploadResponse,
 )
 from .knowledge_base import (
     KnowledgeBaseListResponse,
     KnowledgeBasePaginatedResponse,
 )
-from .document_base import (
-    DocumentBase,
-    DocumentResponse,
-    DocumentUploadResponse,
-    DocumentStatus,
-)
-from .document import (
-    DocumentListResponse,
-    DocumentPaginatedResponse,
+from .knowledge_base_base import (
+    KnowledgeBaseBase,
+    KnowledgeBaseCreate,
+    KnowledgeBaseResponse,
+    KnowledgeBaseUpdate,
 )
 
 __all__ = [

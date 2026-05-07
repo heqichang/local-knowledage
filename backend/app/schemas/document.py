@@ -1,9 +1,6 @@
 from app.schemas.common import ListResponse, PaginatedResponse
 from app.schemas.document_base import (
-    DocumentBase,
     DocumentResponse,
-    DocumentUploadResponse,
-    DocumentStatus,
 )
 
 

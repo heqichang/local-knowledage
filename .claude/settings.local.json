@@ -17,7 +17,8 @@
       "Bash(curl *)",
       "Bash(netstat -ano)",
       "Bash(findstr :3000)",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(pnpm lint *)"
     ]
   }
 }

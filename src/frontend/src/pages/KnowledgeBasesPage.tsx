@@ -1,4 +1,4 @@
-import { type ChangeEvent, type DragEvent, type FC, useState } from 'react'
+import { type ChangeEvent, type DragEvent, type FC, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useKnowledgeBases,
@@ -75,6 +75,11 @@ const KnowledgeBasesPage: FC = () => {
   const [uploadMessage, setUploadMessage] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+
+  useEffect(() => {
+    setUploadMessage(null)
+    setUploadError(null)
+  }, [kbId])
 
   const knowledgeBases = kbList?.items ?? []
   const documents = docList?.items ?? []
@@ -190,6 +195,11 @@ const KnowledgeBasesPage: FC = () => {
           }
           setUploadMessage(`已接收 ${successCount} 个文件，正在后台处理中`)
           setUploadError(null)
+          setTimeout(() => {
+            setUploadMessage((current) =>
+              current === `已接收 ${successCount} 个文件，正在后台处理中` ? null : current
+            )
+          }, 4000)
         },
         onError: () => {
           setUploadMessage(null)

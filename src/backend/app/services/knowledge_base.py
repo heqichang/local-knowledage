@@ -8,6 +8,7 @@ from app.schemas import (
     KnowledgeBaseResponse,
     KnowledgeBaseUpdate,
 )
+from app.services.chroma import get_chroma_service
 
 
 class KnowledgeBaseService:
@@ -67,6 +68,9 @@ class KnowledgeBaseService:
         kb = await self.get_by_id(kb_id)
         if not kb:
             return False
+
+        chroma_service = get_chroma_service()
+        chroma_service.delete_collection(kb_id)
 
         await self.db.delete(kb)
         await self.db.commit()

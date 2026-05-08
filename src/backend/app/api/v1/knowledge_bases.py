@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -98,6 +98,7 @@ async def delete_knowledge_base(
 @router.post("/{kb_id}/documents/upload", response_model=DocumentUploadResponse)
 async def upload_documents(
     kb_id: int,
+    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db),
 ):
@@ -113,10 +114,21 @@ async def upload_documents(
 
         if doc:
             uploaded.append(DocumentResponse.model_validate(doc))
+            background_tasks.add_task(process_document_task, doc.id)
         else:
             skipped.append(f"{filename}: {error}")
 
     return DocumentUploadResponse(uploaded=uploaded, skipped=skipped)
+
+
+async def process_document_task(doc_id: int):
+    from app.db.session import async_session_maker
+    async with async_session_maker() as db:
+        service = DocumentService(db)
+        try:
+            await service.process_document(doc_id)
+        except Exception:
+            pass
 
 
 @router.get("/{kb_id}/documents", response_model=DocumentListResponse)

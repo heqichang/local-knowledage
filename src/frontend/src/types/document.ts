@@ -14,6 +14,12 @@ export interface Document {
   updated_at: string
 }
 
+export interface DocumentStatusResponse {
+  id: number
+  status: DocumentStatus
+  error_message: string | null
+}
+
 export interface DocumentUploadResponse {
   uploaded: Document[]
   skipped: string[]

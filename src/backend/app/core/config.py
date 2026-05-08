@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "qwen2.5:7b"
 
     EMBEDDING_MODEL: str = "BAAI/bge-small-zh-v1.5"
+    HF_ENDPOINT: str = "https://hf-mirror.com"
+    HF_HOME: str = ""  # 留空使用默认路径，或设置自定义路径如 "E:/models/huggingface"
 
     CHUNK_SIZE: int = 500
     CHUNK_OVERLAP: int = 50

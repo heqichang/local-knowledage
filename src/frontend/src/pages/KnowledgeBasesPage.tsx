@@ -1,4 +1,4 @@
-import { type FC, useState } from 'react'
+import { type ChangeEvent, type DragEvent, type FC, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useKnowledgeBases,
@@ -47,6 +47,9 @@ const formatFileSize = (bytes: number): string => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
+const allowedFileExtensions = ['txt', 'md', 'pdf', 'docx', 'doc', 'xlsx', 'xls']
+const maxFileSize = 50 * 1024 * 1024
+
 const KnowledgeBasesPage: FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -69,6 +72,8 @@ const KnowledgeBasesPage: FC = () => {
   const [selectedDoc, setSelectedDoc] = useState<{ id: number; kbId: number; name: string } | null>(null)
   const [formName, setFormName] = useState('')
   const [formDescription, setFormDescription] = useState('')
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
   const knowledgeBases = kbList?.items ?? []
@@ -147,11 +152,54 @@ const KnowledgeBasesPage: FC = () => {
 
   const handleFileUpload = (files: FileList | null) => {
     if (!files || files.length === 0 || !kbId) return
+
     const fileArray = Array.from(files)
-    uploadMutation.mutate({ kbId, files: fileArray })
+    const invalidFiles = fileArray.flatMap((file) => {
+      const extension = file.name.split('.').pop()?.toLowerCase() || ''
+      const errors: string[] = []
+
+      if (!allowedFileExtensions.includes(extension)) {
+        errors.push(`${file.name}: 不支持的文件格式`)
+      }
+      if (file.size > maxFileSize) {
+        errors.push(`${file.name}: 文件大小不能超过 50MB`)
+      }
+
+      return errors
+    })
+
+    if (invalidFiles.length > 0) {
+      setUploadError(invalidFiles.join('；'))
+      setUploadMessage(null)
+      return
+    }
+
+    setUploadError(null)
+    setUploadMessage(`准备上传 ${fileArray.length} 个文件`)
+
+    uploadMutation.mutate(
+      { kbId, files: fileArray },
+      {
+        onSuccess: (data) => {
+          const successCount = data.uploaded.length
+          const skippedCount = data.skipped.length
+          if (skippedCount > 0) {
+            setUploadMessage(`已接收 ${successCount} 个文件，跳过 ${skippedCount} 个文件`)
+            setUploadError(data.skipped.join('；'))
+            return
+          }
+          setUploadMessage(`已接收 ${successCount} 个文件，正在后台处理中`)
+          setUploadError(null)
+        },
+        onError: () => {
+          setUploadMessage(null)
+          setUploadError('上传失败，请稍后重试')
+        },
+      }
+    )
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(true)
   }
@@ -160,10 +208,15 @@ const KnowledgeBasesPage: FC = () => {
     setIsDragging(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
     handleFileUpload(e.dataTransfer.files)
+  }
+
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    handleFileUpload(e.target.files)
+    e.target.value = ''
   }
 
   if (kbLoading) {
@@ -409,7 +462,7 @@ const KnowledgeBasesPage: FC = () => {
               multiple
               accept=".txt,.md,.pdf,.docx,.doc,.xlsx,.xls"
               className="hidden"
-              onChange={(e) => handleFileUpload(e.target.files)}
+              onChange={handleFileInputChange}
             />
             <span className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
               选择文件
@@ -422,10 +475,11 @@ const KnowledgeBasesPage: FC = () => {
         {uploadMutation.isPending && (
           <p className="mt-2 text-blue-600">上传中...</p>
         )}
-        {uploadMutation.isSuccess && uploadMutation.data.skipped.length > 0 && (
-          <div className="mt-2 text-yellow-600">
-            部分文件已跳过: {uploadMutation.data.skipped.join(', ')}
-          </div>
+        {uploadMessage && (
+          <p className="mt-2 text-green-600">{uploadMessage}</p>
+        )}
+        {uploadError && (
+          <div className="mt-2 text-sm text-red-600">{uploadError}</div>
         )}
       </div>
 
@@ -455,6 +509,9 @@ const KnowledgeBasesPage: FC = () => {
                       {formatFileSize(doc.file_size)} · {doc.chunk_count} 个分段 ·{' '}
                       {new Date(doc.created_at).toLocaleString('zh-CN')}
                     </p>
+                    {doc.error_message && (
+                      <p className="mt-1 text-sm text-red-600">{doc.error_message}</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

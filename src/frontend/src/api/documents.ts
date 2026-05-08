@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { Document, DocumentUploadResponse, ListResponse } from '@/types'
+import type { Document, DocumentStatusResponse, DocumentUploadResponse, ListResponse } from '@/types'
 
 export const documentsApi = {
   getByKnowledgeBase: async (kbId: number): Promise<ListResponse<Document>> => {
@@ -34,8 +34,8 @@ export const documentsApi = {
     await apiClient.delete(`/knowledge-bases/${kbId}/documents/${docId}`)
   },
 
-  getStatus: async (kbId: number, docId: number): Promise<{ status: string; error_message: string | null }> => {
-    const response = await apiClient.get(`/knowledge-bases/${kbId}/documents/${docId}/status`)
+  getStatus: async (kbId: number, docId: number): Promise<DocumentStatusResponse> => {
+    const response = await apiClient.get<DocumentStatusResponse>(`/knowledge-bases/${kbId}/documents/${docId}/status`)
     return response.data
   },
 }

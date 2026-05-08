@@ -5,11 +5,15 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.models import Document, KnowledgeBase
+from app.models import Document, DocumentChunk, KnowledgeBase
 from app.schemas import DocumentListResponse, DocumentResponse, DocumentStatus
+from app.services.chroma import get_chroma_service
+from app.services.embedding import get_embedding_service
 
 
 class DocumentService:
+    MAX_FILE_SIZE = 50 * 1024 * 1024
+
     def __init__(self, db: AsyncSession):
         self.db = db
         self.upload_dir = Path(settings.DATA_DIR) / "uploads"
@@ -79,6 +83,8 @@ class DocumentService:
 
         file_type = self._get_file_type(filename)
         file_size = len(file_content)
+        if file_size > self.MAX_FILE_SIZE:
+            return None, "文件大小不能超过 50MB"
 
         doc = Document(
             knowledge_base_id=kb_id,
@@ -118,10 +124,44 @@ class DocumentService:
             text_content = parser.parse(file_path)
 
             from app.utils.text_splitter import split_text
-            chunks = split_text(text_content)
+            chunks = [chunk.strip() for chunk in split_text(text_content) if chunk.strip()]
+            if not chunks:
+                raise ValueError("文档未解析出可用文本内容")
+
+            embedding_service = get_embedding_service()
+            embeddings = embedding_service.encode(chunks)
+
+            chroma_service = get_chroma_service()
+            chunk_ids = [f"doc_{doc.id}_chunk_{i}" for i in range(len(chunks))]
+            metadatas = [
+                {
+                    "document_id": doc.id,
+                    "chunk_index": i,
+                    "kb_id": doc.knowledge_base_id,
+                }
+                for i in range(len(chunks))
+            ]
+
+            chroma_service.add_chunks(
+                kb_id=doc.knowledge_base_id,
+                chunk_ids=chunk_ids,
+                embeddings=embeddings,
+                documents=chunks,
+                metadatas=metadatas,
+            )
+
+            for i, (chunk_text, chroma_id) in enumerate(zip(chunks, chunk_ids)):
+                chunk = DocumentChunk(
+                    document_id=doc.id,
+                    chunk_index=i,
+                    content=chunk_text,
+                    chroma_id=chroma_id,
+                )
+                self.db.add(chunk)
 
             doc.chunk_count = len(chunks)
             doc.status = DocumentStatus.COMPLETED
+            doc.error_message = None
 
         except Exception as e:
             doc.status = DocumentStatus.FAILED
@@ -142,6 +182,16 @@ class DocumentService:
             return False
 
         kb_id = doc.knowledge_base_id
+
+        result = await self.db.execute(
+            select(DocumentChunk).where(DocumentChunk.document_id == doc_id)
+        )
+        chunks = list(result.scalars().all())
+
+        if chunks:
+            chroma_service = get_chroma_service()
+            chunk_ids = [chunk.chroma_id for chunk in chunks]
+            chroma_service.delete_chunks(kb_id, chunk_ids)
 
         file_path = self.upload_dir / f"{doc.id}_{doc.filename}"
         if file_path.exists():

@@ -18,7 +18,10 @@
       "Bash(netstat -ano)",
       "Bash(findstr :3000)",
       "Bash(taskkill *)",
-      "Bash(pnpm lint *)"
+      "Bash(pnpm lint *)",
+      "Bash(pnpm *)",
+      "Bash(HF_ENDPOINT=https://hf-mirror.com uv run *)",
+      "Bash(python *)"
     ]
   }
 }

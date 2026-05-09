@@ -21,7 +21,9 @@
       "Bash(pnpm lint *)",
       "Bash(pnpm *)",
       "Bash(HF_ENDPOINT=https://hf-mirror.com uv run *)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(.venv/Scripts/python.exe *)",
+      "Bash(tasklist *)"
     ]
   }
 }

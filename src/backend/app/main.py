@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import router as v1_router
 from app.core.config import settings
-from app.db.session import engine
+from app.db.session import engine, async_session
 from app.models import Base
 
 import os
@@ -24,8 +24,11 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    from app.services import get_embedding_service
+    from app.services import get_embedding_service, init_fts5
     get_embedding_service().load_model_async()
+
+    async with async_session() as session:
+        await init_fts5(session)
 
     yield
     await engine.dispose()

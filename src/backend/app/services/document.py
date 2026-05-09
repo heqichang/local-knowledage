@@ -136,6 +136,7 @@ class DocumentService:
             metadatas = [
                 {
                     "document_id": doc.id,
+                    "document_filename": doc.filename,
                     "chunk_index": i,
                     "kb_id": doc.knowledge_base_id,
                 }

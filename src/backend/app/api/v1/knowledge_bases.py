@@ -122,8 +122,8 @@ async def upload_documents(
 
 
 async def process_document_task(doc_id: int):
-    from app.db.session import async_session_maker
-    async with async_session_maker() as db:
+    from app.db.session import async_session
+    async with async_session() as db:
         service = DocumentService(db)
         try:
             await service.process_document(doc_id)

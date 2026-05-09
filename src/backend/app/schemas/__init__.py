@@ -1,4 +1,13 @@
 from .common import ListResponse, PaginatedResponse
+from .conversation import (
+    ChatRequest,
+    ConversationResponse,
+    MessageResponse,
+    Reference,
+    SearchRequest,
+    SearchResponse,
+    SearchResult,
+)
 from .document import (
     DocumentListResponse,
     DocumentPaginatedResponse,
@@ -35,4 +44,11 @@ __all__ = [
     "DocumentPaginatedResponse",
     "DocumentUploadResponse",
     "DocumentStatus",
+    "SearchRequest",
+    "SearchResponse",
+    "SearchResult",
+    "Reference",
+    "MessageResponse",
+    "ConversationResponse",
+    "ChatRequest",
 ]

@@ -23,7 +23,8 @@
       "Bash(HF_ENDPOINT=https://hf-mirror.com uv run *)",
       "Bash(python *)",
       "Bash(.venv/Scripts/python.exe *)",
-      "Bash(tasklist *)"
+      "Bash(tasklist *)",
+      "Bash(git *)"
     ]
   }
 }

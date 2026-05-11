@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -6,10 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import router as v1_router
 from app.core.config import settings
-from app.db.session import engine, async_session
+from app.db.session import async_session, engine
 from app.models import Base
-
-import os
 
 if settings.HF_ENDPOINT:
     os.environ.setdefault("HF_ENDPOINT", settings.HF_ENDPOINT)
@@ -23,6 +22,9 @@ async def lifespan(app: FastAPI):
     Path(settings.DATA_DIR).mkdir(parents=True, exist_ok=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    from app.services.app_settings import load_settings_from_db
+    await load_settings_from_db()
 
     from app.services import get_embedding_service, init_fts5
     get_embedding_service().load_model_async()

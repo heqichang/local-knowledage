@@ -3,10 +3,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.db.session import get_db
 from app.models import Conversation, Message
 from app.schemas import (
@@ -16,6 +15,7 @@ from app.schemas import (
     MessageResponse,
     Reference,
 )
+from app.services.app_settings import get_runtime_settings
 from app.services.hybrid_search import get_hybrid_search_service
 from app.services.rag import get_rag_service
 
@@ -167,6 +167,8 @@ async def _chat_stream_generator(
     query: str,
     kb_ids: list[int] | None,
 ):
+    runtime = get_runtime_settings()
+
     result = await db.execute(
         select(Conversation).where(Conversation.id == conv_id)
     )
@@ -177,7 +179,7 @@ async def _chat_stream_generator(
     search_service = get_hybrid_search_service(db)
     rag_service = get_rag_service()
 
-    chat_history = await _get_chat_history(db, conv_id, settings.CHAT_HISTORY_ROUNDS)
+    chat_history = await _get_chat_history(db, conv_id, runtime.chat_history_rounds)
 
     user_msg = Message(
         conversation_id=conv_id,
@@ -198,7 +200,6 @@ async def _chat_stream_generator(
         contexts = await search_service.search(
             query=query,
             kb_ids=kb_ids,
-            top_k=settings.SEARCH_TOP_K,
         )
 
         references = await _format_references(contexts)
@@ -248,7 +249,7 @@ async def _chat_stream_generator(
         yield f"data: {error_event}\n\n"
 
         if not full_content:
-            full_content = f"生成回答失败，请检查 Ollama 服务是否正常运行。错误信息: {exc}"
+            full_content = f"生成回答失败，请检查模型服务是否正常运行。错误信息: {exc}"
 
     assistant_msg = Message(
         conversation_id=conv_id,
@@ -290,6 +291,8 @@ async def chat_non_stream(
     request: ChatRequest,
     db: AsyncSession = Depends(get_db),
 ):
+    runtime = get_runtime_settings()
+
     result = await db.execute(
         select(Conversation).where(Conversation.id == conv_id)
     )
@@ -303,10 +306,9 @@ async def chat_non_stream(
     contexts = await search_service.search(
         query=request.message,
         kb_ids=request.kb_ids,
-        top_k=settings.SEARCH_TOP_K,
     )
 
-    chat_history = await _get_chat_history(db, conv_id, settings.CHAT_HISTORY_ROUNDS)
+    chat_history = await _get_chat_history(db, conv_id, runtime.chat_history_rounds)
 
     user_msg = Message(
         conversation_id=conv_id,

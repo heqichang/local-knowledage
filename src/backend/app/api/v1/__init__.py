@@ -2,9 +2,9 @@ from fastapi import APIRouter
 
 from app.api.v1.app_settings import router as settings_router
 from app.api.v1.conversations import router as conv_router
+from app.api.v1.debug import router as debug_router
 from app.api.v1.knowledge_bases import router as kb_router
 from app.api.v1.search import router as search_router
-from app.api.v1.debug import router as debug_router
 
 router = APIRouter()
 router.include_router(kb_router, prefix="/knowledge-bases", tags=["knowledge-bases"])

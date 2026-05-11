@@ -1,3 +1,15 @@
+from .app_settings import (
+    AppSettingsBase,
+    AppSettingsResponse,
+    AppSettingsUpdate,
+    ConnectionTestRequest,
+    ConnectionTestResponse,
+    EmbeddingProvider,
+    LLMProvider,
+    RebuildIndexStatus,
+    RebuildIndexStatusResponse,
+    SearchMode,
+)
 from .common import ListResponse, PaginatedResponse
 from .conversation import (
     ChatRequest,
@@ -51,4 +63,14 @@ __all__ = [
     "MessageResponse",
     "ConversationResponse",
     "ChatRequest",
+    "AppSettingsBase",
+    "AppSettingsUpdate",
+    "AppSettingsResponse",
+    "ConnectionTestRequest",
+    "ConnectionTestResponse",
+    "RebuildIndexStatus",
+    "RebuildIndexStatusResponse",
+    "LLMProvider",
+    "EmbeddingProvider",
+    "SearchMode",
 ]

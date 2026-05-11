@@ -117,6 +117,8 @@ class DocumentService:
         await self.db.commit()
 
         try:
+            await self._clear_old_chunks(doc_id)
+
             file_path = self._get_file_path(doc.id, doc.filename)
 
             from app.utils.file_parser import get_file_parser
@@ -176,6 +178,32 @@ class DocumentService:
         await kb_service.update_document_count(doc.knowledge_base_id)
 
         return doc
+
+    async def _clear_old_chunks(self, doc_id: int) -> None:
+        from sqlalchemy import delete
+
+        doc = await self.get_by_id(doc_id)
+        if not doc:
+            return
+
+        result = await self.db.execute(
+            select(DocumentChunk).where(DocumentChunk.document_id == doc_id)
+        )
+        old_chunks = list(result.scalars().all())
+
+        if not old_chunks:
+            return
+
+        chroma_service = get_chroma_service()
+        chunk_ids = [chunk.chroma_id for chunk in old_chunks]
+
+        if chunk_ids:
+            chroma_service.delete_chunks(doc.knowledge_base_id, chunk_ids)
+
+        await self.db.execute(
+            delete(DocumentChunk).where(DocumentChunk.document_id == doc_id)
+        )
+        await self.db.commit()
 
     async def delete(self, doc_id: int) -> bool:
         doc = await self.get_by_id(doc_id)

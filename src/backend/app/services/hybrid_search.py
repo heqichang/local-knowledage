@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.models import Document
+from app.services.app_settings import get_runtime_settings
 from app.services.fulltext_search import FullTextSearchService
 from app.services.semantic_search import SemanticSearchService
 
@@ -17,28 +17,50 @@ class HybridSearchService:
         self,
         query: str,
         kb_ids: list[int] | None = None,
-        top_k: int = settings.SEARCH_TOP_K,
-        semantic_weight: float = 0.5,
-        fulltext_weight: float = 0.5,
+        top_k: int | None = None,
+        semantic_weight: float | None = None,
+        fulltext_weight: float | None = None,
+        search_mode: str | None = None,
     ) -> list[dict]:
-        semantic_top_k = min(top_k * 3, 20)
-        fulltext_top_k = min(top_k * 3, 20)
+        runtime = get_runtime_settings()
+        actual_top_k = top_k or runtime.search_top_k
+        actual_semantic_weight = semantic_weight if semantic_weight is not None else runtime.semantic_weight
+        actual_fulltext_weight = fulltext_weight if fulltext_weight is not None else runtime.fulltext_weight
+        actual_mode = search_mode or runtime.search_mode
 
-        semantic_results = self.semantic.search(query, kb_ids, semantic_top_k)
-        fulltext_results = await self.fulltext.search(query, kb_ids, fulltext_top_k)
+        semantic_top_k = min(actual_top_k * 3, 20)
+        fulltext_top_k = min(actual_top_k * 3, 20)
 
-        if semantic_results:
-            semantic_results = await self._fill_filenames(semantic_results)
+        if actual_mode == "semantic":
+            semantic_results = self.semantic.search(query, kb_ids, semantic_top_k)
+            if semantic_results:
+                semantic_results = await self._fill_filenames(semantic_results)
+            return self._rank_semantic(semantic_results, actual_top_k)
+        elif actual_mode == "fulltext":
+            fulltext_results = await self.fulltext.search(query, kb_ids, fulltext_top_k)
+            return self._rank_fulltext(fulltext_results, actual_top_k)
+        else:
+            semantic_results = self.semantic.search(query, kb_ids, semantic_top_k)
+            fulltext_results = await self.fulltext.search(query, kb_ids, fulltext_top_k)
 
-        if not semantic_results and not fulltext_results:
-            return []
+            if semantic_results:
+                semantic_results = await self._fill_filenames(semantic_results)
 
-        if not semantic_results:
-            return self._rank_fulltext(fulltext_results, top_k)
-        if not fulltext_results:
-            return self._rank_semantic(semantic_results, top_k)
+            if not semantic_results and not fulltext_results:
+                return []
 
-        return self._rrf_rank(semantic_results, fulltext_results, top_k, semantic_weight, fulltext_weight)
+            if not semantic_results:
+                return self._rank_fulltext(fulltext_results, actual_top_k)
+            if not fulltext_results:
+                return self._rank_semantic(semantic_results, actual_top_k)
+
+            return self._rrf_rank(
+                semantic_results,
+                fulltext_results,
+                actual_top_k,
+                actual_semantic_weight,
+                actual_fulltext_weight,
+            )
 
     async def _fill_filenames(self, results: list[dict]) -> list[dict]:
         doc_ids = {r.get("document_id") for r in results if r.get("document_id") and not r.get("document_filename")}

@@ -1,6 +1,6 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from app.core.config import settings
+from app.services.app_settings import get_runtime_settings
 
 
 def split_text(
@@ -8,8 +8,9 @@ def split_text(
     chunk_size: int | None = None,
     chunk_overlap: int | None = None,
 ) -> list[str]:
-    size = chunk_size or settings.CHUNK_SIZE
-    overlap = chunk_overlap or settings.CHUNK_OVERLAP
+    runtime = get_runtime_settings()
+    size = chunk_size or runtime.chunk_size
+    overlap = chunk_overlap or runtime.chunk_overlap
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=size,

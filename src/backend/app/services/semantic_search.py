@@ -1,6 +1,6 @@
-from app.core.config import settings
-from app.services.chroma import get_chroma_service, ChromaDBService
-from app.services.embedding import get_embedding_service, EmbeddingService
+from app.services.app_settings import get_runtime_settings
+from app.services.chroma import ChromaDBService, get_chroma_service
+from app.services.embedding import EmbeddingService, get_embedding_service
 
 
 class SemanticSearchService:
@@ -16,26 +16,28 @@ class SemanticSearchService:
         self,
         query: str,
         kb_ids: list[int] | None = None,
-        top_k: int = settings.SEARCH_TOP_K,
+        top_k: int | None = None,
     ) -> list[dict]:
+        runtime = get_runtime_settings()
+        actual_top_k = top_k or runtime.search_top_k
         query_embedding = self.embedding.encode_single(query)
 
         all_results: list[dict] = []
 
         if kb_ids:
             for kb_id in kb_ids:
-                results = self._search_kb(kb_id, query_embedding, top_k)
+                results = self._search_kb(kb_id, query_embedding, actual_top_k)
                 all_results.extend(results)
         else:
             all_collections = self.chroma.client.list_collections()
             for collection in all_collections:
                 kb_id = collection.metadata.get("kb_id") if collection.metadata else None
                 if kb_id is not None:
-                    results = self._search_kb(int(kb_id), query_embedding, top_k)
+                    results = self._search_kb(int(kb_id), query_embedding, actual_top_k)
                     all_results.extend(results)
 
         all_results.sort(key=lambda x: x["score"])
-        return all_results[:top_k]
+        return all_results[:actual_top_k]
 
     def _search_kb(
         self,

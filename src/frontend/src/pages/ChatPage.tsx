@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { conversationsApi } from '@/api'
 import type { Message, Reference, StreamEvent } from '@/types'
+import ChatMessage from '@/components/chat/ChatMessage'
 
-interface ChatMessage extends Message {
+interface ChatMessageItem extends Message {
   isStreaming?: boolean
 }
 
@@ -18,7 +19,7 @@ const ChatPage = () => {
 
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([])
+  const [localMessages, setLocalMessages] = useState<ChatMessageItem[]>([])
   const [currentReferences, setCurrentReferences] = useState<Reference[]>([])
   const [expandedReferences, setExpandedReferences] = useState<Set<number>>(new Set())
 
@@ -96,7 +97,7 @@ const ChatPage = () => {
     try {
       const id = await ensureConversation()
 
-      const userMessage: ChatMessage = {
+      const userMessage: ChatMessageItem = {
         id: Date.now(),
         conversation_id: id,
         role: 'user',
@@ -104,7 +105,7 @@ const ChatPage = () => {
         created_at: new Date().toISOString(),
       }
 
-      const assistantMessage: ChatMessage = {
+      const assistantMessage: ChatMessageItem = {
         id: Date.now() + 1,
         conversation_id: id,
         role: 'assistant',
@@ -167,11 +168,6 @@ const ChatPage = () => {
       setIsLoading(false)
       streamRef.current = null
     }
-  }
-
-  const formatTime = (iso: string) => {
-    const date = new Date(iso)
-    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -271,71 +267,12 @@ const ChatPage = () => {
             <div className="flex-1 overflow-auto px-4 py-6">
               <div className="max-w-3xl mx-auto space-y-6">
                 {localMessages.map((msg) => (
-                  <div
+                  <ChatMessage
                     key={msg.id}
-                    className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {msg.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm">🤖</span>
-                      </div>
-                    )}
-
-                    <div className={`max-w-[80%] ${msg.role === 'user' ? 'order-first' : ''}`}>
-                      <div
-                        className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                          msg.role === 'user'
-                            ? 'bg-blue-600 text-white rounded-tr-sm'
-                            : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm'
-                        }`}
-                      >
-                        {msg.content}
-                        {msg.isStreaming && (
-                          <span className="inline-block w-1.5 h-4 bg-gray-400 ml-1 animate-pulse" />
-                        )}
-                      </div>
-
-                      {msg.role === 'assistant' && msg.references && msg.references.length > 0 && (
-                        <div className="mt-2">
-                          <button
-                            onClick={() => toggleReference(msg.id)}
-                            className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
-                          >
-                            <span>{expandedReferences.has(msg.id) ? '▼' : '▶'}</span>
-                            引用来源 ({msg.references.length})
-                          </button>
-
-                          {expandedReferences.has(msg.id) && (
-                            <div className="mt-2 space-y-2">
-                              {msg.references.map((ref, i) => (
-                                <div
-                                  key={i}
-                                  className="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
-                                >
-                                  <p className="text-xs font-medium text-yellow-800 mb-1">
-                                    [{i + 1}] {ref.document_filename} · 片段 #{ref.chunk_index}
-                                  </p>
-                                  <p className="text-xs text-yellow-900 leading-relaxed">
-                                    {ref.content}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      <p className="mt-1 text-xs text-gray-400">
-                        {formatTime(msg.created_at)}
-                      </p>
-                    </div>
-
-                    {msg.role === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm">👤</span>
-                      </div>
-                    )}
-                  </div>
+                    {...msg}
+                    expandedReferences={expandedReferences.has(msg.id)}
+                    onToggleReferences={() => toggleReference(msg.id)}
+                  />
                 ))}
                 <div ref={messagesEndRef} />
               </div>

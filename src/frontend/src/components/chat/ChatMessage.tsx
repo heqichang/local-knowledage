@@ -70,26 +70,26 @@ const ChatMessage: FC<ChatMessageProps> = ({
   const isUser = role === 'user'
 
   const assistantMarkdownComponents = {
-    h1: ({ children }: { children: React.ReactNode }) => (
+    h1: ({ children }: { children?: React.ReactNode }) => (
       <h1 className="text-2xl font-bold mb-4 mt-6 text-gray-900">{children}</h1>
     ),
-    h2: ({ children }: { children: React.ReactNode }) => (
+    h2: ({ children }: { children?: React.ReactNode }) => (
       <h2 className="text-xl font-semibold mt-5 mb-2.5 text-gray-800">{children}</h2>
     ),
-    h3: ({ children }: { children: React.ReactNode }) => (
+    h3: ({ children }: { children?: React.ReactNode }) => (
       <h3 className="text-lg font-medium mt-4 mb-2 text-gray-800">{children}</h3>
     ),
-    p: ({ children }: { children: React.ReactNode }) => (
+    p: ({ children }: { children?: React.ReactNode }) => (
       <p className="mb-4 leading-relaxed text-gray-700">{children}</p>
     ),
-    ul: ({ children }: { children: React.ReactNode }) => (
+    ul: ({ children }: { children?: React.ReactNode }) => (
       <ul className="list-disc pl-6 mb-4 text-gray-700">{children}</ul>
     ),
-    ol: ({ children }: { children: React.ReactNode }) => (
+    ol: ({ children }: { children?: React.ReactNode }) => (
       <ol className="list-decimal pl-6 mb-4 text-gray-700">{children}</ol>
     ),
-    li: ({ children }: { children: React.ReactNode }) => <li className="mb-1">{children}</li>,
-    a: ({ href, children }: { href?: string; children: React.ReactNode }) => (
+    li: ({ children }: { children?: React.ReactNode }) => <li className="mb-1">{children}</li>,
+    a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
       <a
         href={href}
         className="text-blue-600 hover:underline"
@@ -99,12 +99,12 @@ const ChatMessage: FC<ChatMessageProps> = ({
         {children}
       </a>
     ),
-    blockquote: ({ children }: { children: React.ReactNode }) => (
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
       <blockquote className="border-l-4 border-gray-300 pl-4 my-4 text-gray-600 italic">
         {children}
       </blockquote>
     ),
-    code: ({ className, children, ...props }: { className?: string; children: React.ReactNode }) => {
+    code: ({ className, children, ...props }: { className?: string; children?: React.ReactNode }) => {
       const match = /language-(\w+)/.exec(className || '')
       const isInline = !match
       return isInline ? (
@@ -117,26 +117,26 @@ const ChatMessage: FC<ChatMessageProps> = ({
         </code>
       )
     },
-    pre: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    pre: ({ children, className }: { children?: React.ReactNode; className?: string }) => (
       <CodeBlock className={className}>{children}</CodeBlock>
     ),
-    table: ({ children }: { children: React.ReactNode }) => (
+    table: ({ children }: { children?: React.ReactNode }) => (
       <div className="overflow-x-auto mb-4">
         <table className="min-w-full divide-y divide-gray-200">
           {children}
         </table>
       </div>
     ),
-    thead: ({ children }: { children: React.ReactNode }) => <thead className="bg-gray-50">{children}</thead>,
-    th: ({ children }: { children: React.ReactNode }) => (
+    thead: ({ children }: { children?: React.ReactNode }) => <thead className="bg-gray-50">{children}</thead>,
+    th: ({ children }: { children?: React.ReactNode }) => (
       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
         {children}
       </th>
     ),
-    tbody: ({ children }: { children: React.ReactNode }) => (
+    tbody: ({ children }: { children?: React.ReactNode }) => (
       <tbody className="bg-white divide-y divide-gray-200">{children}</tbody>
     ),
-    td: ({ children }: { children: React.ReactNode }) => (
+    td: ({ children }: { children?: React.ReactNode }) => (
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
         {children}
       </td>

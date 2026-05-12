@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node10",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "outDir": "../../dist/desktop",
+    "rootDir": ".",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "../frontend",
+    "paths": {
+      "electron": ["./node_modules/electron"],
+      "*": ["./node_modules/*"]
+    }
+  },
+  "include": ["*.ts"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,35 @@
+appId: com.localknowledgebase.app
+productName: 本地知识库
+
+directories:
+  output: dist-electron
+
+win:
+  target: nsis
+  icon: ./public/favicon.svg
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 本地知识库
+  installDir: $PROGRAMFILES\本地知识库
+
+extraResources:
+  - from: ../backend/dist/local-knowledge-base.exe
+    to: backend/local-knowledge-base.exe
+
+files:
+  - dist/**/*
+  - ../../dist/desktop/main.js
+  - ../../dist/desktop/preload.js
+  - ../../dist/desktop/backendManager.js
+  - package.json
+  - !node_modules
+  - !src
+  - !.env*
+  - !*.config.*
+  - !tsconfig*.json
+  - !README.md

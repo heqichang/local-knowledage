@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createHashRouter } from 'react-router-dom'
 import MainLayout from '@/layouts/MainLayout'
 import ChatPage from '@/pages/ChatPage'
 import KnowledgeBasesPage from '@/pages/KnowledgeBasesPage'
@@ -6,7 +6,7 @@ import NoteEditorPage from '@/pages/NoteEditorPage'
 import SearchPage from '@/pages/SearchPage'
 import SettingsPage from '@/pages/SettingsPage'
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     element: <MainLayout />,
     children: [

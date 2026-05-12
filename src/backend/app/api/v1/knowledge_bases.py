@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.schemas import (
+    DocumentContentResponse,
     DocumentListResponse,
     DocumentResponse,
     DocumentUploadResponse,
@@ -12,6 +13,8 @@ from app.schemas import (
     KnowledgeBaseListResponse,
     KnowledgeBaseResponse,
     KnowledgeBaseUpdate,
+    NoteCreate,
+    NoteUpdate,
 )
 from app.services import DocumentService, KnowledgeBaseService
 
@@ -93,6 +96,36 @@ async def delete_knowledge_base(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="知识库不存在",
         )
+
+
+@router.post("/{kb_id}/notes", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
+async def create_note(
+    kb_id: int,
+    payload: NoteCreate,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+):
+    service = DocumentService(db)
+    doc, error = await service.create_note(
+        kb_id=kb_id,
+        filename=payload.filename,
+        content=payload.content,
+    )
+
+    if doc:
+        background_tasks.add_task(process_document_task, doc.id)
+        return doc
+
+    if error == "知识库不存在":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error,
+        )
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=error,
+    )
 
 
 @router.post("/{kb_id}/documents/upload", response_model=DocumentUploadResponse)
@@ -196,3 +229,78 @@ async def get_document_status(
         "status": doc.status,
         "error_message": doc.error_message,
     }
+
+
+@router.get("/{kb_id}/documents/{doc_id}/content", response_model=DocumentContentResponse)
+async def get_document_content(
+    kb_id: int,
+    doc_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    service = DocumentService(db)
+    doc = await service.get_by_id(doc_id)
+
+    if not doc or doc.knowledge_base_id != kb_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="文档不存在",
+        )
+
+    if doc.file_type != "md":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="仅支持 Markdown 文件",
+        )
+
+    doc, content, error = await service.get_content(doc_id)
+
+    if not doc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error,
+        )
+
+    return DocumentContentResponse(
+        id=doc.id,
+        filename=doc.filename,
+        content=content,
+    )
+
+
+@router.put("/{kb_id}/documents/{doc_id}/content", response_model=DocumentResponse)
+async def update_document_content(
+    kb_id: int,
+    doc_id: int,
+    payload: NoteUpdate,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+):
+    service = DocumentService(db)
+    doc = await service.get_by_id(doc_id)
+
+    if not doc or doc.knowledge_base_id != kb_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="文档不存在",
+        )
+
+    if doc.file_type != "md":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="仅支持 Markdown 文件",
+        )
+
+    doc, error = await service.update_content(
+        doc_id=doc_id,
+        content=payload.content,
+        filename=payload.filename,
+    )
+
+    if doc:
+        background_tasks.add_task(process_document_task, doc.id)
+        return doc
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=error,
+    )

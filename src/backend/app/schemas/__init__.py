@@ -26,9 +26,12 @@ from .document import (
 )
 from .document_base import (
     DocumentBase,
+    DocumentContentResponse,
     DocumentResponse,
     DocumentStatus,
     DocumentUploadResponse,
+    NoteCreate,
+    NoteUpdate,
 )
 from .knowledge_base import (
     KnowledgeBaseListResponse,
@@ -51,11 +54,14 @@ __all__ = [
     "KnowledgeBaseListResponse",
     "KnowledgeBasePaginatedResponse",
     "DocumentBase",
+    "DocumentContentResponse",
     "DocumentResponse",
     "DocumentListResponse",
     "DocumentPaginatedResponse",
     "DocumentUploadResponse",
     "DocumentStatus",
+    "NoteCreate",
+    "NoteUpdate",
     "SearchRequest",
     "SearchResponse",
     "SearchResult",

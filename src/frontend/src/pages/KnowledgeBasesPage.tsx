@@ -458,39 +458,49 @@ const KnowledgeBasesPage: FC = () => {
         </div>
       </div>
 
-      <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center mb-6 transition-colors ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <div className="text-gray-500 mb-4">
-          <p className="text-lg">拖拽文件到此处或</p>
-          <label className="inline-block mt-2">
-            <input
-              type="file"
-              multiple
-              accept=".txt,.md,.pdf,.docx,.doc,.xlsx,.xls"
-              className="hidden"
-              onChange={handleFileInputChange}
-            />
-            <span className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
-              选择文件
-            </span>
-          </label>
+      <div className="flex gap-3 mb-6">
+        <div
+          className={`flex-1 border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <div className="text-gray-500 mb-4">
+            <p className="text-lg">拖拽文件到此处或</p>
+            <label className="inline-block mt-2">
+              <input
+                type="file"
+                multiple
+                accept=".txt,.md,.pdf,.docx,.doc,.xlsx,.xls"
+                className="hidden"
+                onChange={handleFileInputChange}
+              />
+              <span className="px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
+                选择文件
+              </span>
+            </label>
+          </div>
+          <p className="text-sm text-gray-400">
+            支持 TXT、MD、PDF、DOCX、XLSX 格式，单文件最大 50MB
+          </p>
+          {uploadMutation.isPending && (
+            <p className="mt-2 text-blue-600">上传中...</p>
+          )}
+          {uploadMessage && (
+            <p className="mt-2 text-green-600">{uploadMessage}</p>
+          )}
+          {uploadError && (
+            <div className="mt-2 text-sm text-red-600">{uploadError}</div>
+          )}
         </div>
-        <p className="text-sm text-gray-400">
-          支持 TXT、MD、PDF、DOCX、XLSX 格式，单文件最大 50MB
-        </p>
-        {uploadMutation.isPending && (
-          <p className="mt-2 text-blue-600">上传中...</p>
-        )}
-        {uploadMessage && (
-          <p className="mt-2 text-green-600">{uploadMessage}</p>
-        )}
-        {uploadError && (
-          <div className="mt-2 text-sm text-red-600">{uploadError}</div>
-        )}
+
+        <button
+          onClick={() => navigate(`/knowledge-bases/${kbId}/notes/new`)}
+          className="px-6 py-8 bg-white border-2 border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-colors flex flex-col items-center justify-center gap-2"
+        >
+          <span className="text-2xl">+</span>
+          <span className="font-medium">新建笔记</span>
+        </button>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg">
@@ -530,6 +540,14 @@ const KnowledgeBasesPage: FC = () => {
                   >
                     {getStatusText(doc.status)}
                   </span>
+                  {doc.file_type === 'md' && (
+                    <button
+                      onClick={() => navigate(`/knowledge-bases/${kbId}/notes/${doc.id}/edit`)}
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      编辑
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDeleteDoc(doc.id, kbId, doc.filename)}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"

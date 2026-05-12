@@ -24,3 +24,19 @@ export interface DocumentUploadResponse {
   uploaded: Document[]
   skipped: string[]
 }
+
+export interface DocumentContentResponse {
+  id: number
+  filename: string
+  content: string
+}
+
+export interface NoteCreateRequest {
+  filename: string
+  content: string
+}
+
+export interface NoteUpdateRequest {
+  content: string
+  filename?: string
+}

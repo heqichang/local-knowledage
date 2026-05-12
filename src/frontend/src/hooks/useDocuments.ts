@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { documentsApi } from '@/api'
-import type { Document, DocumentStatusResponse, ListResponse } from '@/types'
+import type {
+  Document,
+  DocumentContentResponse,
+  DocumentStatusResponse,
+  ListResponse,
+  NoteCreateRequest,
+  NoteUpdateRequest,
+} from '@/types'
 
 export const useDocuments = (kbId: number | undefined) => {
   return useQuery({
@@ -53,6 +60,53 @@ export const useDeleteDocument = () => {
       queryClient.invalidateQueries({ queryKey: ['documents', variables.kbId] })
       queryClient.invalidateQueries({ queryKey: ['knowledgeBase', variables.kbId] })
       queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] })
+    },
+  })
+}
+
+export const useCreateNote = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ kbId, data }: { kbId: number; data: NoteCreateRequest }) =>
+      documentsApi.createNote(kbId, data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['documents', variables.kbId] })
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBase', variables.kbId] })
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] })
+    },
+  })
+}
+
+export const useDocumentContent = (kbId: number | undefined, docId: number | undefined) => {
+  return useQuery({
+    queryKey: ['document-content', kbId, docId],
+    queryFn: () =>
+      kbId && docId
+        ? documentsApi.getDocumentContent(kbId, docId)
+        : (null as DocumentContentResponse | null),
+    enabled: !!kbId && !!docId,
+  })
+}
+
+export const useUpdateDocumentContent = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      kbId,
+      docId,
+      data,
+    }: {
+      kbId: number
+      docId: number
+      data: NoteUpdateRequest
+    }) => documentsApi.updateDocumentContent(kbId, docId, data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['documents', variables.kbId] })
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBase', variables.kbId] })
+      queryClient.invalidateQueries({ queryKey: ['knowledgeBases'] })
+      queryClient.invalidateQueries({
+        queryKey: ['document-content', variables.kbId, variables.docId],
+      })
     },
   })
 }
